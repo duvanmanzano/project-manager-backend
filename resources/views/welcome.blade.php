@@ -1,4 +1,8 @@
 <!DOCTYPE html>
+@php
+    echo bcrypt('1234');
+    exit;
+@endphp
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">

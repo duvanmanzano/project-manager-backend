@@ -4,6 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\SignUpRequest;
+use App\Project;
+use App\Rol;
+use App\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AuthController extends Controller
 {
@@ -14,7 +20,12 @@ class AuthController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth:api', ['except' => ['login']]);
+        $this->middleware('auth:api', [
+            'except' => [
+                'login', 'signin', 'project', 'projects',
+                'users', 'roles', 'user', 'update'
+            ]
+        ]);
     }
 
     /**
@@ -31,6 +42,71 @@ class AuthController extends Controller
         }
 
         return $this->respondWithToken($token);
+    }
+
+    public function signin(SignUpRequest $request)
+    {
+        $data = $request->all();
+        User::create($data);
+        return $this->login($request);
+    }
+
+    public function update(Request $request)
+    {
+        $data = $request->all();
+        $user = User::find($data['iduser']);
+        unset($data['iduser']);
+        if ($user != null) {
+            if ($user->password == $data['password']) {
+                unset($data['password']);
+            }
+            foreach ($data as $property => $value) {
+                $user->{$property} = $value;
+            }
+            $user->avatar = 'avatar';
+            $user->save();
+        }
+
+        return response()->json([
+            'user' => $data
+        ]);
+    }
+
+    public function project(Request $request)
+    {
+        $data = $request->all();
+        Project::create($data);
+        return response()->json([
+            'msg' => 'success'
+        ]);
+    }
+
+    public function projects(Request $request)
+    {
+        return response()->json([
+            'projects' => Project::all()
+        ]);
+    }
+
+    public function users(Request $request)
+    {
+        return response()->json([
+            'users' => User::all()
+        ]);
+    }
+
+    public function roles(Request $request)
+    {
+        return response()->json([
+            'roles' => Rol::all()
+        ]);
+    }
+
+    public function user($id)
+    {
+        return response()->json([
+            'user' => User::find($id)
+        ]);
     }
 
     /**
