@@ -23,7 +23,8 @@ class AuthController extends Controller
         $this->middleware('auth:api', [
             'except' => [
                 'login', 'signin', 'project', 'projects',
-                'users', 'roles', 'user', 'update', 'getProject'
+                'users', 'roles', 'user', 'update', 'getProject',
+                'deleteProject', 'deleteUser'
             ]
         ]);
     }
@@ -125,6 +126,22 @@ class AuthController extends Controller
     {
         return response()->json([
             'user' => User::find($id)
+        ]);
+    }
+
+    public function deleteProject($id)
+    {
+        $project = Project::find($id);
+        return response()->json([
+            'project' => $project->delete()
+        ]);
+    }
+
+    public function deleteUser($id)
+    {
+        $user = User::find($id);
+        return response()->json([
+            'user' => $user->delete()
         ]);
     }
 

@@ -32,4 +32,6 @@ Route::group([
     Route::post('logout', 'AuthController@logout');
     Route::post('refresh', 'AuthController@refresh');
     Route::post('me', 'AuthController@me');
+    Route::get('project-delete/{id}', 'AuthController@deleteProject');
+    Route::get('user-delete/{id}', 'AuthController@deleteUser');
 });
