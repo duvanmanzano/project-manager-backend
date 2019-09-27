@@ -23,6 +23,8 @@ Route::group([
     Route::post('signin', 'AuthController@signin');
     Route::post('update', 'AuthController@update');
     Route::post('project', 'AuthController@project');
+    Route::post('project/{id}', 'AuthController@project');
+    Route::get('project/{id}', 'AuthController@getProject');
     Route::get('projects', 'AuthController@projects');
     Route::get('users', 'AuthController@users');
     Route::get('user/{id}', 'AuthController@user');

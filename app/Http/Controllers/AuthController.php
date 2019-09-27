@@ -23,7 +23,7 @@ class AuthController extends Controller
         $this->middleware('auth:api', [
             'except' => [
                 'login', 'signin', 'project', 'projects',
-                'users', 'roles', 'user', 'update'
+                'users', 'roles', 'user', 'update', 'getProject'
             ]
         ]);
     }
@@ -75,7 +75,19 @@ class AuthController extends Controller
     public function project(Request $request)
     {
         $data = $request->all();
-        Project::create($data);
+        if (array_key_exists('idproject', $data)) {
+            $project = Project::find($data['idproject']);
+            if ($project != null) {
+                unset($data['idproject']);
+                foreach ($data as $property => $value) {
+                    $project->{$property} = $value;
+                }
+                $project->save();
+            }
+        } else {
+            Project::create($data);
+        }
+
         return response()->json([
             'msg' => 'success'
         ]);
@@ -85,6 +97,13 @@ class AuthController extends Controller
     {
         return response()->json([
             'projects' => Project::all()
+        ]);
+    }
+
+    public function getProject($id)
+    {
+        return response()->json([
+            'project' => Project::find($id)
         ]);
     }
 

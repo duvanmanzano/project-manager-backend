@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Project extends Model
 {
-    protected $primaryKey = "iduser";
+    protected $primaryKey = "idproject";
 
     public $timestamps = false;
 
