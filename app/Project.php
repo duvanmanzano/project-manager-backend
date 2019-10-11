@@ -11,6 +11,6 @@ class Project extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'idproject', 'name', 'image', 'startdate', 'state'
+        'idproject', 'name', 'image', 'startdate', 'state', 'enddate', 'description'
     ];
 }

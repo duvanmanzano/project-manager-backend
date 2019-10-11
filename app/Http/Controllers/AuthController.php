@@ -23,9 +23,9 @@ class AuthController extends Controller
         $this->middleware('auth:api', [
             'except' => [
                 'login', 'signin', 
-                // 'project', 'projects',
-                // 'users', 'roles', 'user', 'update', 'getProject',
-                // 'deleteProject', 'deleteUser'
+                'project', 'projects',
+                'users', 'roles', 'user', 'update', 'getProject',
+                'deleteProject', 'deleteUser', 'me'
             ]
         ]);
     }
