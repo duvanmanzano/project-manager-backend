@@ -34,4 +34,8 @@ Route::group([
     Route::post('me', 'AuthController@me');
     Route::get('project-delete/{id}', 'AuthController@deleteProject');
     Route::get('user-delete/{id}', 'AuthController@deleteUser');
+    Route::get('tag-delete/{id}', 'AuthController@deleteTag');
+    Route::get('tags', 'AuthController@getTags');
+    Route::get('tags/{idtag}', 'AuthController@getTags');
+    Route::post('tag', 'AuthController@tag');
 });

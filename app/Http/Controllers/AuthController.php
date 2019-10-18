@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\SignUpRequest;
 use App\Project;
 use App\Rol;
+use App\Tag;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,10 +23,10 @@ class AuthController extends Controller
     {
         $this->middleware('auth:api', [
             'except' => [
-                'login', 'signin', 
+                'login', 'signin',
                 'project', 'projects',
                 'users', 'roles', 'user', 'update', 'getProject',
-                'deleteProject', 'deleteUser', 'me'
+                'deleteProject', 'deleteUser', 'me', 'getTags', 'deleteTag', 'tag'
             ]
         ]);
     }
@@ -146,6 +147,48 @@ class AuthController extends Controller
         ]);
     }
 
+    public function tag(Request $request)
+    {
+        $data = $request->all();
+        unset($data['projectName']);
+        if (array_key_exists('idtag', $data)) {
+            $tag = Tag::find($data['idtag']);
+            if ($tag != null) {
+                unset($data['idtag']);
+                foreach ($data as $property => $value) {
+                    $tag->{$property} = $value;
+                }
+                $tag->save();
+            }
+        } else {
+            Tag::create($data);
+        }
+        return response()->json([
+            'msg' => 'success'
+        ]);
+    }
+
+    public function getTags($id = null)
+    {
+        $query = DB::table('tags')
+            ->join('projects', 'tags.idproject', '=', 'projects.idproject');
+        if ($id != null && $id > 0) {
+            $query->where('tags.idtag', '=', $id);
+        }
+        $query->select('tags.idtag AS idtag', 'tags.idproject AS idproject', 'tags.name AS name', 'tags.state AS state', 'projects.name AS projectName');
+        return response()->json([
+            'tagsList' => $query->get(),
+            'tag' => $query->first(),
+        ]);
+    }
+
+    public function deleteTag($id)
+    {
+        return response()->json([
+            'user' => DB::table('tags')->where('idtag', '=', $id)->delete()
+        ]);
+    }
+
     /**
      * Get the authenticated User.
      *
@@ -191,7 +234,7 @@ class AuthController extends Controller
             'access_token' => $token,
             'token_type' => 'bearer',
             'expires_in' => auth()->factory()->getTTL() * 60,
-            'user' => auth()->user()->name
+            'user' => auth()->user()
         ]);
     }
 }
