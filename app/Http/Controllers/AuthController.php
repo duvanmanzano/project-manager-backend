@@ -85,6 +85,7 @@ class AuthController extends Controller
                 foreach ($data as $property => $value) {
                     $project->{$property} = $value;
                 }
+                $project->startdate = date('Y-m-d');
                 $project->save();
             }
         } else {
