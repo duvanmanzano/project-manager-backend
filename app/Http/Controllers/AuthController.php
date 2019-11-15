@@ -26,7 +26,8 @@ class AuthController extends Controller
                 'login', 'signin',
                 'project', 'projects',
                 'users', 'roles', 'user', 'update', 'getProject',
-                'deleteProject', 'deleteUser', 'me', 'getTags', 'deleteTag', 'tag'
+                'deleteProject', 'deleteUser', 'me', 'getTags', 'deleteTag', 'tag',
+                'getEmployees', 'getProjectMembers', 'getProjectTags', 'deleteMember', 'addMember'
             ]
         ]);
     }
@@ -176,10 +177,85 @@ class AuthController extends Controller
         if ($id != null && $id > 0) {
             $query->where('tags.idtag', '=', $id);
         }
-        $query->select('tags.idtag AS idtag', 'tags.idproject AS idproject', 'tags.name AS name', 'tags.state AS state', 'projects.name AS projectName');
+        $query->select('tags.idtag AS idtag', 'tags.idproject AS idproject', 'tags.name AS name', 'tags.state AS state', 'projects.name AS projectName', 'tags.color');
         return response()->json([
             'tagsList' => $query->get(),
             'tag' => $query->first(),
+        ]);
+    }
+
+    public function getProjectTags($id)
+    {
+        return response()->json([
+            'list' => Tag::where('idproject', '=', $id)->get()
+        ]);
+    }
+
+    public function getEmployees()
+    {
+        return response()->json([
+            'list' => User::where('idrol', 2)->get()
+        ]);
+    }
+
+    public function getProjectMembers($id)
+    {
+        return response()->json([
+            'list' => DB::table('projects AS p')
+                ->join('user_project AS up', 'p.idproject', '=', 'up.idproject')
+                ->join('users AS u', 'up.iduser', '=', 'u.iduser')
+                ->where('p.idproject', '=', $id)
+                ->get()
+        ]);
+    }
+
+    public function addMember($id, $personid)
+    {
+        $added = false;
+        $idUserProjectList = DB::table('user_project AS up')
+            ->where('up.iduser', '=', $personid)
+            ->where('up.idproject', '=', $id)
+            ->select('up.iduser_project AS id')
+            ->pluck('id');
+        if ($idUserProjectList->count() == 0) {
+            DB::table('user_project')->insert([
+                'iduser' => $personid,
+                'idproject' => $id,
+                'owner' => 0
+            ]);
+            $added = true;
+        }
+
+        return response()->json([
+            'added' => $added
+        ]);
+    }
+
+    public function deleteMember($id, $personid)
+    {
+        $deleted = false;
+        $idUserProjectList = DB::table('user_project AS up')
+            ->where('up.iduser', '=', $personid)
+            ->where('up.idproject', '=', $id)
+            ->select('up.iduser_project AS id')
+            ->pluck('id');
+
+        if ($idUserProjectList->count() > 0) {
+            $userProjectActivitiesList = DB::table('user_proj_act AS upa')
+                ->whereIn('iduser_project', $idUserProjectList);
+            if ($userProjectActivitiesList->count() == 0) {
+                DB::table('user_project')
+                    ->whereIn('iduser_project', $idUserProjectList)
+                    ->delete();
+                $deleted = true;
+            }
+        }
+        return response()->json([
+            'id' => $id,
+            'personid' => $personid,
+            'count' => $idUserProjectList->count(),
+            // 'count2' => $userProjectActivitiesList->count(),
+            'deleted' => $deleted
         ]);
     }
 

@@ -25,6 +25,10 @@ Route::group([
     Route::post('project', 'AuthController@project');
     Route::post('project/{id}', 'AuthController@project');
     Route::get('project/{id}', 'AuthController@getProject');
+    Route::get('project/{id}/members', 'AuthController@getProjectMembers');
+    Route::get('project/{id}/member/{personid}/delete', 'AuthController@deleteMember');
+    Route::get('project/{id}/member/{personid}/add', 'AuthController@addMember');
+    Route::get('project/{id}/tags', 'AuthController@getProjectTags');
     Route::get('projects', 'AuthController@projects');
     Route::get('users', 'AuthController@users');
     Route::get('user/{id}', 'AuthController@user');
@@ -38,4 +42,5 @@ Route::group([
     Route::get('tags', 'AuthController@getTags');
     Route::get('tags/{idtag}', 'AuthController@getTags');
     Route::post('tag', 'AuthController@tag');
+    Route::get('employees', 'AuthController@getEmployees');    
 });

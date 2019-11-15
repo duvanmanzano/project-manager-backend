@@ -13,6 +13,6 @@ class Tag extends Model
 
     
     protected $fillable = [
-        'idtag', 'name', 'state', 'idproject'
+        'idtag', 'name', 'state', 'idproject', 'color'
     ];
 }
