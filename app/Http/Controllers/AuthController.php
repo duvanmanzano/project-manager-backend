@@ -27,7 +27,8 @@ class AuthController extends Controller
                 'project', 'projects',
                 'users', 'roles', 'user', 'update', 'getProject',
                 'deleteProject', 'deleteUser', 'me', 'getTags', 'deleteTag', 'tag',
-                'getEmployees', 'getProjectMembers', 'getProjectTags', 'deleteMember', 'addMember'
+                'getEmployees', 'getProjectMembers', 'getProjectTags', 'deleteMember', 'addMember',
+                'activity', 'getProjectActivities', 'updateActivityState'
             ]
         ]);
     }
@@ -259,10 +260,125 @@ class AuthController extends Controller
         ]);
     }
 
+    public function activity(Request $request)
+    {
+        $success = true;
+        $tagsid = $request->tagsid;
+        $activity = $request->activity;
+        $personsid = $request->personsid;
+        $projectid = $request->projectid;
+
+        $idUserProjectList = DB::table('user_project AS up')
+            ->where('up.idproject', '=', $projectid)
+            ->select('up.iduser_project AS id')
+            ->pluck('id');
+
+        if (!array_key_exists('idactivity', $activity)) {
+            $idActivity = DB::table('activities')->insertGetId($activity);
+        } else {
+            $idActivity = $activity['idactivity'];
+            unset($activity['idactivity']);
+            DB::table('activities')
+                ->where('idactivity', $idActivity)
+                ->update($activity);
+        }
+
+        DB::table('activity_tag')->where('idactivity', '=', $idActivity)->delete();
+        $inserts = [];
+        foreach ($tagsid as $tag) {
+            $inserts[] = [
+                'idactivity' => $idActivity,
+                'idtag' => $tag
+            ];
+        }
+        DB::table('activity_tag')->insert($inserts);
+
+        DB::table('user_proj_act')
+            ->whereIn('iduser_project', $idUserProjectList)
+            ->where('idactivity', '=', $idActivity)
+            ->delete();
+
+        $idUserProjectList = DB::table('user_project AS up')
+            ->where('up.idproject', '=', $projectid)
+            ->whereIn('up.iduser', $personsid)
+            ->select('up.iduser_project AS id')
+            ->pluck('id');
+
+        $inserts = [];
+        foreach ($idUserProjectList as $person) {
+            $inserts[] = [
+                'iduser_project' => $person,
+                'idactivity' => $idActivity
+            ];
+        }
+        DB::table('user_proj_act')->insert($inserts);
+
+        return response()->json([
+            'added' => $success
+        ]);
+    }
+
+    public function getProjectActivities($idproject)
+    {
+        $idUserProjectList = DB::table('user_project AS up')
+            ->where('up.idproject', '=', $idproject)
+            ->select('up.iduser_project AS id')
+            ->pluck('id');
+
+        $idActivities = DB::table('user_proj_act AS upa')
+            ->whereIn('upa.iduser_project', $idUserProjectList)
+            ->select('upa.idactivity AS id')
+            ->groupBy('upa.idactivity')
+            ->pluck('id');
+
+        $results = DB::table('activities AS a')
+            ->whereIn('a.idactivity', $idActivities)
+            ->select('a.idactivity', 'a.name', 'a.state', 'a.order')
+            ->orderBy('a.order');
+
+        $tags = DB::table('activity_tag AS at')
+            ->whereIn('at.idactivity', $idActivities)
+            ->get();
+
+        $results = $results->get();
+        $todo = [];
+        $done = [];
+        $checked = [];
+        foreach ($results as $activity) {
+            if ($activity->state == 1) {
+                $todo[] = $activity;
+            }
+            if ($activity->state == 2) {
+                $done[] = $activity;
+            }
+            if ($activity->state == 3) {
+                $checked[] = $activity;
+            }
+        }
+        return response()->json([
+            'todo' => $todo,
+            'done' => $done,
+            'checked' => $checked,
+            'tags' => $tags,
+            'results' => $idActivities
+        ]);
+    }
+
     public function deleteTag($id)
     {
         return response()->json([
             'user' => DB::table('tags')->where('idtag', '=', $id)->delete()
+        ]);
+    }
+
+    public function updateActivityState($idactivity, $state)
+    {
+        return response()->json([
+            'res' => DB::table('activities')
+                ->where('idactivity', $idactivity)
+                ->update([
+                    'state' => $state
+                ])
         ]);
     }
 
