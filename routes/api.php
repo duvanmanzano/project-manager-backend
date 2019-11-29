@@ -46,4 +46,7 @@ Route::group([
     Route::get('employees', 'AuthController@getEmployees');    
     Route::post('activity', 'AuthController@activity');
     Route::get('activity/{idactivity}/state/{state}', 'AuthController@updateActivityState');
+    Route::get('activity/{idactivity}', 'AuthController@getActivity');
+    Route::get('activity/{idactivity}/delete', 'AuthController@deleteActivity');
+
 });

@@ -28,7 +28,7 @@ class AuthController extends Controller
                 'users', 'roles', 'user', 'update', 'getProject',
                 'deleteProject', 'deleteUser', 'me', 'getTags', 'deleteTag', 'tag',
                 'getEmployees', 'getProjectMembers', 'getProjectTags', 'deleteMember', 'addMember',
-                'activity', 'getProjectActivities', 'updateActivityState'
+                'activity', 'getProjectActivities', 'updateActivityState', 'getActivity', 'deleteActivity'
             ]
         ]);
     }
@@ -382,6 +382,41 @@ class AuthController extends Controller
         ]);
     }
 
+    public function deleteActivity($idactivity)
+    {
+        DB::table('user_proj_act')->where('idactivity', '=', $idactivity)->delete();
+        DB::table('activity_tag')->where('idactivity', '=', $idactivity)->delete();
+        return response()->json([
+            's' => DB::table('activities')->where('idactivity', '=', $idactivity)->delete(),
+            'id' => $idactivity
+        ]);
+    }
+    public function getActivity($idactivity)
+    {
+        $activityList = DB::table('activities AS a')
+            ->where('a.idactivity', '=', $idactivity)
+            ->get();
+
+        $idtags = DB::table('activity_tag AS at')
+            ->where('at.idactivity', '=', $idactivity)
+            ->select('at.idtag AS id')
+            ->pluck('id');
+
+        $tags = DB::table('tags AS t')->whereIn('t.idtag', $idtags)->get();
+
+        $idusers = DB::table('user_proj_act AS upa')
+            ->join('user_project AS up', 'upa.iduser_project', '=', 'up.iduser_project')
+            ->select('up.iduser AS id')
+            ->pluck('id');
+
+        $users = DB::table('users')->whereIn('iduser', $idusers)->get();
+
+        return response()->json([
+            'activity' => $activityList,
+            'tags' => $tags,
+            'users' => $users
+        ]);
+    }
     /**
      * Get the authenticated User.
      *
